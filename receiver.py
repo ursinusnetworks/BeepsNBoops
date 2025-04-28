@@ -55,6 +55,7 @@ if __name__ == '__main__':
 
     ## Step 1: Record audio and/or load it in
     if path == "mic":
+        print(f"Recording for {opt.seconds} seconds...")
         x = sd.rec(int(sr*opt.seconds), samplerate=sr, channels=1)
         sd.wait()
         x = x.flatten()
@@ -62,6 +63,7 @@ if __name__ == '__main__':
         x = np.array(x*32767, dtype=np.int16)
         write("recorded.wav", sr, x)
         path = "recorded.wav"
+        print("Finished recording")
     
     sry, y = read(path)
     assert(sry == sr)
@@ -77,6 +79,7 @@ if __name__ == '__main__':
     ## Step 3: Extract bits from audio
     received = np.array([])
     best_score = np.inf
+    best_idx = 0
     t = np.arange(y.size)/sr
     c = np.cos(2*np.pi*fc*t)
     s = np.sin(2*np.pi*fc*t)
@@ -102,7 +105,9 @@ if __name__ == '__main__':
             continue
         if mn < best_score:
             best_score = mn
+            best_idx = idx
             received = receivedi[idx+len(preamble_expanded):] # Cut off crap at beginning
+    print(f"Message starts {best_idx*L/sr} seconds into recording")
     
     # Created an array of estimated bits based on patters of 100 (0), and 110 (1)
     received = np.array([int(x) for x in received])
